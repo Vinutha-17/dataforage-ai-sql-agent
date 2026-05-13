@@ -49,7 +49,6 @@ html, body, .stApp {
 /* ── HIDE STREAMLIT CHROME — keep header visible for sidebar toggle ── */
 #MainMenu { visibility: hidden; }
 footer    { visibility: hidden; }
-/* Do NOT hide `header` — it contains the sidebar collapse button */
 
 .block-container { padding-top: 1.5rem !important; }
 
@@ -61,7 +60,7 @@ section[data-testid="stSidebar"] {
 }
 section[data-testid="stSidebar"] * { color: var(--text) !important; }
 
-/* ── SIDEBAR TOGGLE BUTTON — target every known selector variant ── */
+/* ── SIDEBAR TOGGLE BUTTON ── */
 button[data-testid="baseButton-header"],
 button[data-testid="stSidebarNavCollapseButton"],
 button[data-testid="stSidebarCollapsedControl"],
@@ -89,7 +88,6 @@ button[data-testid="stSidebarCollapsedControl"]:hover,
     color: #000 !important;
 }
 
-/* Force icons inside toggle buttons to be visible */
 button[data-testid="baseButton-header"] svg,
 button[data-testid="stSidebarNavCollapseButton"] svg,
 button[data-testid="stSidebarCollapsedControl"] svg,
@@ -100,7 +98,6 @@ button[data-testid="stSidebarCollapsedControl"] svg,
     display: block !important;
 }
 
-/* ── Streamlit header bar — keep it rendered but invisible so toggle works ── */
 header[data-testid="stHeader"] {
     background: transparent !important;
     border-bottom: none !important;
@@ -118,10 +115,7 @@ header[data-testid="stHeader"] {
     border-radius: 12px;
     margin-bottom: 24px;
 }
-.topbar-icon {
-    font-size: 32px;
-    line-height: 1;
-}
+.topbar-icon { font-size: 32px; line-height: 1; }
 .topbar-name {
     font-family: 'Syne', sans-serif;
     font-weight: 800;
@@ -364,7 +358,7 @@ st.markdown("""
   <div>
     <div class="topbar-name">DataForge AI <span class="topbar-badge">SQL AGENT</span></div>
   </div>
-  <div class="topbar-sub">Natural Language → SQL • Auto Visualize • Insight Engine</div>
+  <div class="topbar-sub">Natural Language -> SQL - Auto Visualize - Insight Engine</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -388,8 +382,8 @@ with st.sidebar:
     <div style="margin-top:32px; padding:14px; background:rgba(0,212,170,0.06);
                 border:1px solid rgba(0,212,170,0.2); border-radius:8px;
                 font-family:'Space Mono',monospace; font-size:11px; color:#8b949e; line-height:1.8;">
-        <div style="color:#00d4aa; margin-bottom:6px;">▸ CAPABILITIES</div>
-        NL → SQL Query Gen<br>
+        <div style="color:#00d4aa; margin-bottom:6px;">&#9658; CAPABILITIES</div>
+        NL -> SQL Query Gen<br>
         Auto Chart Builder<br>
         Correlation Heatmap<br>
         PDF Export<br>
@@ -403,7 +397,8 @@ def generate_pdf(summary_text):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="DataForge AI — SQL Analysis Report", ln=True)
+    # FIX: replaced em-dash with plain hyphen to avoid FPDFUnicodeEncodingException
+    pdf.cell(200, 10, txt="DataForge AI - SQL Analysis Report", ln=True)
     pdf.ln(4)
     pdf.multi_cell(0, 10, summary_text)
     pdf.output("report.pdf")
@@ -423,7 +418,7 @@ if uploaded_file:
     try:
         df = pd.read_csv(uploaded_file)
     except Exception:
-        st.error("❌ Could not read CSV file")
+        st.error("Could not read CSV file")
         st.stop()
 
     conn = sqlite3.connect(":memory:")
@@ -431,7 +426,7 @@ if uploaded_file:
     numeric_cols = df.select_dtypes(include=["number"]).columns.tolist()
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "◈  DASHBOARD", "⬡  SQL AGENT", "◉  CHARTS", "⬇  EXPORT"
+        "DASHBOARD", "SQL AGENT", "CHARTS", "EXPORT"
     ])
 
     # ── DASHBOARD ────────────────────────────────────────────
@@ -449,7 +444,7 @@ if uploaded_file:
         with c4: st.metric("Duplicates", duplicate_rows)
 
         if numeric_cols:
-            st.markdown('<div class="section-head">KPI Snapshot · ' + numeric_cols[0] + '</div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-head">KPI Snapshot - ' + numeric_cols[0] + '</div>', unsafe_allow_html=True)
             k1, k2, k3 = st.columns(3)
             with k1: st.metric("Max", round(df[numeric_cols[0]].max(), 2))
             with k2: st.metric("Min", round(df[numeric_cols[0]].min(), 2))
@@ -467,7 +462,7 @@ if uploaded_file:
         st.markdown('<div class="section-head">Data Operations</div>', unsafe_allow_html=True)
         col_clean, col_search = st.columns([1, 2])
         with col_clean:
-            if st.button("◈ Clean Dataset"):
+            if st.button("Clean Dataset"):
                 before = df.shape[0]
                 df = df.drop_duplicates().fillna(0)
                 df.to_sql("data_table", conn, if_exists="replace", index=False)
@@ -561,7 +556,7 @@ Answer:
                 sql_query, final_answer = "", response
 
                 if "SQL:" in response and "Answer:" in response:
-                    sql_query   = response.split("SQL:")[1].split("Answer:")[0].strip()
+                    sql_query    = response.split("SQL:")[1].split("Answer:")[0].strip()
                     final_answer = response.split("Answer:")[1].strip()
 
                 ai_response = (
@@ -581,21 +576,21 @@ Answer:
                             if not result_df.empty:
                                 st.dataframe(result_df, use_container_width=True)
                         except Exception:
-                            st.warning("⚠ Could not execute the generated SQL on your dataset.")
+                            st.warning("Could not execute the generated SQL on your dataset.")
 
             except Exception as e:
                 st.error(f"Agent error: {e}")
 
         elif question and not groq_api_key:
-            st.warning("⚠ Enter your Groq API Key in the sidebar to activate the agent.")
+            st.warning("Enter your Groq API Key in the sidebar to activate the agent.")
 
         if st.session_state.query_history:
             st.markdown('<div class="section-head">Query History</div>', unsafe_allow_html=True)
             for item in reversed(st.session_state.query_history[-8:]):
                 st.markdown(f"""
                 <div class="hist-item">
-                  <div class="hist-q">▸ {item['question']}</div>
-                  <code style="font-size:11px;color:#7c3aed;">{item['sql'][:120]}{'…' if len(item['sql'])>120 else ''}</code>
+                  <div class="hist-q">&#9658; {item['question']}</div>
+                  <code style="font-size:11px;color:#7c3aed;">{item['sql'][:120]}{'...' if len(item['sql'])>120 else ''}</code>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -637,7 +632,7 @@ Answer:
                 fig2.update_layout(**PLOT_LAYOUT)
                 st.plotly_chart(fig2, use_container_width=True)
             except Exception:
-                st.warning("⚠ Could not generate heatmap")
+                st.warning("Could not generate heatmap")
 
         if len(numeric_cols) >= 1:
             st.markdown('<div class="section-head">Distribution Overview</div>', unsafe_allow_html=True)
@@ -648,7 +643,8 @@ Answer:
                 marker_color="#00d4aa", opacity=0.75,
                 name=sel_col
             ))
-            fig3.update_layout(title=f"{sel_col} — Frequency Distribution", **PLOT_LAYOUT)
+            # FIX: replaced em-dash with plain hyphen in chart title
+            fig3.update_layout(title=f"{sel_col} - Frequency Distribution", **PLOT_LAYOUT)
             st.plotly_chart(fig3, use_container_width=True)
 
     # ── EXPORT ───────────────────────────────────────────────
@@ -659,9 +655,10 @@ Answer:
         with e1:
             st.markdown("**PDF Report**")
             st.caption("Summary stats exported as a formatted PDF document.")
-            if st.button("◈ Build PDF"):
+            if st.button("Build PDF"):
+                # FIX: replaced em-dash with plain hyphen throughout report_text
                 report_text = (
-                    f"DataForge AI — Analysis Report\n"
+                    f"DataForge AI - Analysis Report\n"
                     f"{'='*40}\n"
                     f"Rows:       {df.shape[0]}\n"
                     f"Columns:    {df.shape[1]}\n"
@@ -678,13 +675,13 @@ Answer:
                     )
                 generate_pdf(report_text)
                 with open("report.pdf", "rb") as f:
-                    st.download_button("⬇ Download PDF", f, "DataForge_Report.pdf", "application/pdf")
+                    st.download_button("Download PDF", f, "DataForge_Report.pdf", "application/pdf")
 
         with e2:
             st.markdown("**CSV Export**")
             st.caption("Download the current (cleaned) dataset as CSV.")
             csv_data = df.to_csv(index=False).encode("utf-8")
-            st.download_button("⬇ Download CSV", csv_data, "dataforge_export.csv", "text/csv")
+            st.download_button("Download CSV", csv_data, "dataforge_export.csv", "text/csv")
 
         st.markdown('<div class="section-head">Dataset Stats Table</div>', unsafe_allow_html=True)
         if numeric_cols:
@@ -695,13 +692,13 @@ else:
     st.markdown("""
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
                 padding:80px 20px; text-align:center;">
-      <div style="font-size:64px;margin-bottom:20px;opacity:0.6;">⬡</div>
+      <div style="font-size:64px;margin-bottom:20px;opacity:0.6;">&#11041;</div>
       <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px;
                   color:#e6edf3;margin-bottom:12px;">Upload a dataset to begin</div>
       <div style="font-family:'Space Mono',monospace;font-size:13px;color:#8b949e;
                   max-width:480px;line-height:1.8;">
         Drop a <span style="color:#00d4aa">.csv</span> file in the sidebar.<br>
-        DataForge will auto-analyse it — then ask anything in plain English.<br>
+        DataForge will auto-analyse it - then ask anything in plain English.<br>
         The AI SQL Agent converts your question to a query and runs it live.
       </div>
     </div>
