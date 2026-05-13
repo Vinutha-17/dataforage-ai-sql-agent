@@ -46,16 +46,66 @@ html, body, .stApp {
     font-family: 'Syne', sans-serif;
 }
 
-/* ── HIDE STREAMLIT CHROME ── */
-#MainMenu, footer, header { visibility: hidden; }
+/* ── HIDE STREAMLIT CHROME — keep header visible for sidebar toggle ── */
+#MainMenu { visibility: hidden; }
+footer    { visibility: hidden; }
+/* Do NOT hide `header` — it contains the sidebar collapse button */
+
 .block-container { padding-top: 1.5rem !important; }
 
 /* ── SIDEBAR ── */
 section[data-testid="stSidebar"] {
     background: var(--surface) !important;
     border-right: 1px solid var(--border);
+    min-height: 100vh;
 }
 section[data-testid="stSidebar"] * { color: var(--text) !important; }
+
+/* ── SIDEBAR TOGGLE BUTTON — target every known selector variant ── */
+button[data-testid="baseButton-header"],
+button[data-testid="stSidebarNavCollapseButton"],
+button[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapsedControl"] button {
+    visibility: visible !important;
+    display: flex !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 6px !important;
+    color: var(--accent) !important;
+    cursor: pointer !important;
+    z-index: 9999 !important;
+    transition: background 0.2s, border-color 0.2s !important;
+}
+
+button[data-testid="baseButton-header"]:hover,
+button[data-testid="stSidebarNavCollapseButton"]:hover,
+button[data-testid="stSidebarCollapsedControl"]:hover,
+[data-testid="collapsedControl"]:hover {
+    background: var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: #000 !important;
+}
+
+/* Force icons inside toggle buttons to be visible */
+button[data-testid="baseButton-header"] svg,
+button[data-testid="stSidebarNavCollapseButton"] svg,
+button[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="collapsedControl"] svg {
+    fill: currentColor !important;
+    stroke: currentColor !important;
+    visibility: visible !important;
+    display: block !important;
+}
+
+/* ── Streamlit header bar — keep it rendered but invisible so toggle works ── */
+header[data-testid="stHeader"] {
+    background: transparent !important;
+    border-bottom: none !important;
+    height: auto !important;
+}
 
 /* ── TOPBAR ── */
 .topbar {
